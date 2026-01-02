@@ -1,4 +1,4 @@
-rootProject.name = "dp-behov-send-til-ka"
+rootProject.name = "dp-kabal-integrasjon"
 dependencyResolutionManagement {
     repositories {
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")

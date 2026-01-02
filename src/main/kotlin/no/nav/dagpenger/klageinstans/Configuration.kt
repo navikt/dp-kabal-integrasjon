@@ -10,13 +10,13 @@ import no.nav.dagpenger.oauth2.CachedOauth2Client
 import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
-    const val APP_NAME = "dp-behov-send-til-ka"
+    const val APP_NAME = "dp-kabal-integrasjon"
 
     private val defaultProperties =
         ConfigurationMap(
             mapOf(
-                "RAPID_APP_NAME" to "dp-behov-send-til-ka",
-                "KAFKA_CONSUMER_GROUP_ID" to "dp-behov-send-til-ka-v1",
+                "RAPID_APP_NAME" to "dp-kabal-integrasjon",
+                "KAFKA_CONSUMER_GROUP_ID" to "dp-kabal-integrasjon-v1",
                 "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
                 "KAFKA_EXTRA_TOPIC" to "klage.behandling-events.v1",
                 "KAFKA_RESET_POLICY" to "LATEST",

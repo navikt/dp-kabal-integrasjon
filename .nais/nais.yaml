@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: dp-behov-send-til-ka
+  name: dp-kabal-integrasjon
   namespace: teamdagpenger
   labels:
     team: teamdagpenger
