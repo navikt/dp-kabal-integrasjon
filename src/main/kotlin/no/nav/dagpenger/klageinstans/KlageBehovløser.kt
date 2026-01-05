@@ -7,7 +7,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River.PacketListener
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
@@ -73,7 +72,6 @@ internal class KlageBehovløser(
         withLoggingContext("behandlingId" to "$behandlingId") {
             logger.info { "Mottatt behov om oversendelse av klage til klageinstans for behandling $behandlingId" }
             sikkerlogg.info { "Behandlingsdata for klagebehandling $behandlingId: ${packet.toJson()}" }
-
 
             val ident = packet["ident"].asText()
             val fagsakId = packet["fagsakId"].asText()
