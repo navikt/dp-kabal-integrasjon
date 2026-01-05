@@ -10,7 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 class KlageBehovløserTest {
     private val testRapid = TestRapid()
@@ -42,7 +42,7 @@ class KlageBehovløserTest {
 
     @Test
     fun `Skal løse behov dersom filter matcher`() {
-        val nå = LocalDate.now()
+        val nå = LocalDateTime.now()
         val klageKlient =
             mockk<KlageHttpKlient>().also {
                 coEvery {
@@ -52,7 +52,7 @@ class KlageBehovløserTest {
                         fagsakId = fagsakId,
                         behandlendeEnhet = behandlendeEnhet,
                         hjemler = hjemler,
-                        opprettet = nå,
+                        opprettet = nå.toLocalDate(),
                         kommentar = kommentar,
                         tilknyttedeJournalposter = tilknyttedeJournalposter,
                     )
@@ -96,7 +96,7 @@ class KlageBehovløserTest {
 
     @Test
     fun `Skal løse behov med fullmektig dersom filter matcher`() {
-        val nå = LocalDate.now()
+        val nå = LocalDateTime.now()
         val klageKlient =
             mockk<KlageHttpKlient>().also {
                 coEvery {
@@ -107,7 +107,7 @@ class KlageBehovløserTest {
                         behandlendeEnhet = behandlendeEnhet,
                         hjemler = hjemler,
                         prosessFullmektig = prosessFullmektig,
-                        opprettet = nå,
+                        opprettet = nå.toLocalDate(),
                     )
                 } returns Result.success(HttpStatusCode.OK)
             }
@@ -145,7 +145,7 @@ class KlageBehovløserTest {
 
     @Test
     fun `Bad request fører til runtime exception`() {
-        val nå = LocalDate.now()
+        val nå = LocalDateTime.now()
         val klageKlient =
             KlageHttpKlient(
                 klageApiUrl = "http://localhost:8080",
@@ -167,7 +167,7 @@ class KlageBehovløserTest {
         }
     }
 
-    private fun TestRapid.sendBehov(når: LocalDate) {
+    private fun TestRapid.sendBehov(når: LocalDateTime) {
         this.sendTestMessage(
             """
             {
@@ -203,7 +203,7 @@ class KlageBehovløserTest {
         )
     }
 
-    private fun TestRapid.sendBehovMedFullmektig(når: LocalDate) {
+    private fun TestRapid.sendBehovMedFullmektig(når: LocalDateTime) {
         this.sendTestMessage(
             """
             {
