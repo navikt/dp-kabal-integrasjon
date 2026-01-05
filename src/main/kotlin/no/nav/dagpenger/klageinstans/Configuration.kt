@@ -46,4 +46,9 @@ internal object Configuration {
             authType = azureAdConfig.clientSecret(),
         )
     }
+
+    fun isDev(): Boolean {
+        val env = properties.getOrElse(Key("NAIS_CLUSTER_NAME", stringType), "not-dev")
+        return env == "dev-gcp"
+    }
 }

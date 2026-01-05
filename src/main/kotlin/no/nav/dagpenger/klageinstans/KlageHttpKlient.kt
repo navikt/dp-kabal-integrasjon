@@ -6,14 +6,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -67,17 +68,35 @@ class KlageHttpKlient(
                 kommentar = kommentar,
             )
         sikkerlogg.info { "KlageinstansOversendelse for klagebehandling $behandlingId: $body" }
-        return runCatching {
+        val result =
+            opprettKlage(body).onFailure { throwable ->
+                logger.error(throwable) { "Kall til kabal-api feilet for klagebehandling: $behandlingId" }
+            }
+
+        if (result.isFailure && Configuration.isDev()) {
+            val exception = result.exceptionOrNull()
+            if (exception is ClientRequestException &&
+                exception.response
+                    .bodyAsText()
+                    .contains("ugyldig journalpostreferanse")
+            ) {
+                logger.warn { "Gjør en retry mot kabal med ingen journalpostreferanser" }
+                return opprettKlage(body.copy(tilknyttedeJournalposter = emptyList()))
+            }
+        }
+
+        return result
+    }
+
+    private suspend fun opprettKlage(klageinstansOversendelse: KlageinstansOversendelse): Result<HttpStatusCode> =
+        runCatching {
             httpClient
                 .post(urlString = "$klageApiUrl/api/oversendelse/v4/sak") {
                     header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
                     header(HttpHeaders.ContentType, ContentType.Application.Json)
-                    setBody(body)
+                    setBody(klageinstansOversendelse)
                 }.status
-        }.onFailure { throwable ->
-            logger.error(throwable) { "Kall til kabal-api feilet for klagebehandling: $behandlingId" }
         }
-    }
 }
 
 private data class KlageinstansOversendelse(
@@ -150,11 +169,13 @@ fun httpClient(
     }
 
     install(Logging) {
-        logger = object : Logger {
-            override fun log(message: String) {
-                no.nav.dagpenger.klageinstans.logger.info { message }
+        logger =
+            object : Logger {
+                override fun log(message: String) {
+                    no.nav.dagpenger.klageinstans.logger
+                        .info { message }
+                }
             }
-        }
         level = LogLevel.BODY
     }
 
