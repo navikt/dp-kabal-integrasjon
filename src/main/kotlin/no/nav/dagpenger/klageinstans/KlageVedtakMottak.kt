@@ -11,6 +11,7 @@ import io.github.oshai.kotlinlogging.withLoggingContext
 import io.micrometer.core.instrument.MeterRegistry
 
 private val logger = KotlinLogging.logger {}
+private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class KlageVedtakMottak(
     rapidsConnection: RapidsConnection,
@@ -54,6 +55,7 @@ internal class KlageVedtakMottak(
             "behandlingId" to behandlingId,
         ) {
             logger.info { "Mottok klageAnke vedtak for behandlingId: $behandlingId" }
+            sikkerlogg.info { "Mottok klageAnke vedtak for behandlingId: $behandlingId med pakke: ${packet.toJson()}" }
             packet["@event_name"] = EVENT_NAME
             context.publish(
                 packet.toJson(),
