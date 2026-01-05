@@ -119,8 +119,9 @@ data class ProsessFullmektig(
 data class PersonIdentId(
     val type: String = "PERSON",
     val verdi: String,
-)
-
+) {
+    override fun toString(): String = "$type:${verdi.take(6)}"
+}
 data class Adresse(
     val addresselinje1: String?,
     val addresselinje2: String?,
