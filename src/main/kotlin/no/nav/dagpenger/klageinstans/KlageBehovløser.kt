@@ -15,6 +15,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 
 private val logger = KotlinLogging.logger {}
+private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class KlageBehovløser(
     rapidsConnection: RapidsConnection,
@@ -58,21 +59,6 @@ internal class KlageBehovløser(
         River(rapidsConnection).apply(rapidFilter).register(this)
     }
 
-    override fun onError(
-        problems: MessageProblems,
-        context: MessageContext,
-        metadata: MessageMetadata,
-    ) {
-        logger.error { "Skjønte ikke meldinga\n$problems" }
-    }
-
-    override fun onSevere(
-        error: MessageProblems.MessageException,
-        context: MessageContext,
-    ) {
-        logger.error { "Skjønte ikke meldinga\n$error" }
-    }
-
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
@@ -84,58 +70,62 @@ internal class KlageBehovløser(
             logger.info { "Skipper oversendelse av klagebehandling $behandlingId" }
             return
         }
-
-        val ident = packet["ident"].asText()
-        val fagsakId = packet["fagsakId"].asText()
-        val opprettet = packet["opprettet"].asLocalDate()
-        val behandlendeEnhet = packet["behandlendeEnhet"].asText()
-        val hjemler = packet["hjemler"].map { it.asText() }
-        val tilknyttedeJournalposter: List<Journalposter> =
-            packet["tilknyttedeJournalposter"].takeIf(JsonNode::isArray)?.map {
-                it.takeIf(JsonNode::isObject).let { jp ->
-                    Journalposter(
-                        jp?.get("type")!!.asText(),
-                        jp.get("journalpostId")!!.asText(),
-                    )
-                }
-            } ?: emptyList()
-        val kommentar = packet["kommentar"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigNavn = packet["prosessfullmektigNavn"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigIdent = packet["prosessfullmektigIdent"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigAdresselinje1 =
-            packet["prosessfullmektigAdresselinje1"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigAdresselinje2 =
-            packet["prosessfullmektigAdresselinje2"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigAdresselinje3 =
-            packet["prosessfullmektigAdresselinje3"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigPostnummer = packet["prosessfullmektigPostnummer"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigPoststed = packet["prosessfullmektigPoststed"].takeIf(JsonNode::isTextual)?.asText()
-        val prosessfullmektigLand = packet["prosessfullmektigLand"].takeIf(JsonNode::isTextual)?.asText()
-
-        val prosessFullmektig =
-            if (!prosessfullmektigNavn.isNullOrBlank() || !prosessfullmektigIdent.isNullOrBlank()) {
-                ProsessFullmektig(
-                    id = if (!prosessfullmektigIdent.isNullOrBlank()) PersonIdentId(verdi = prosessfullmektigIdent) else null,
-                    navn = prosessfullmektigNavn,
-                    adresse =
-                        if (!prosessfullmektigLand.isNullOrBlank()) {
-                            Adresse(
-                                addresselinje1 = prosessfullmektigAdresselinje1,
-                                addresselinje2 = prosessfullmektigAdresselinje2,
-                                addresselinje3 = prosessfullmektigAdresselinje3,
-                                postnummer = prosessfullmektigPostnummer,
-                                poststed = prosessfullmektigPoststed,
-                                land = prosessfullmektigLand,
-                            )
-                        } else {
-                            null
-                        },
-                )
-            } else {
-                null
-            }
-
         withLoggingContext("behandlingId" to "$behandlingId") {
+            logger.info { "Mottatt behov om oversendelse av klage til klageinstans for behandling $behandlingId" }
+            sikkerlogg.info { "Behandlingsdata for klagebehandling $behandlingId: ${packet.toJson()}" }
+
+
+            val ident = packet["ident"].asText()
+            val fagsakId = packet["fagsakId"].asText()
+            val opprettet = packet["opprettet"].asLocalDate()
+            val behandlendeEnhet = packet["behandlendeEnhet"].asText()
+            val hjemler = packet["hjemler"].map { it.asText() }
+            val tilknyttedeJournalposter: List<Journalposter> =
+                packet["tilknyttedeJournalposter"].takeIf(JsonNode::isArray)?.map {
+                    it.takeIf(JsonNode::isObject).let { jp ->
+                        Journalposter(
+                            jp?.get("type")!!.asText(),
+                            jp.get("journalpostId")!!.asText(),
+                        )
+                    }
+                } ?: emptyList()
+            val kommentar = packet["kommentar"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigNavn = packet["prosessfullmektigNavn"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigIdent = packet["prosessfullmektigIdent"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigAdresselinje1 =
+                packet["prosessfullmektigAdresselinje1"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigAdresselinje2 =
+                packet["prosessfullmektigAdresselinje2"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigAdresselinje3 =
+                packet["prosessfullmektigAdresselinje3"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigPostnummer =
+                packet["prosessfullmektigPostnummer"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigPoststed = packet["prosessfullmektigPoststed"].takeIf(JsonNode::isTextual)?.asText()
+            val prosessfullmektigLand = packet["prosessfullmektigLand"].takeIf(JsonNode::isTextual)?.asText()
+
+            val prosessFullmektig =
+                if (!prosessfullmektigNavn.isNullOrBlank() || !prosessfullmektigIdent.isNullOrBlank()) {
+                    ProsessFullmektig(
+                        id = if (!prosessfullmektigIdent.isNullOrBlank()) PersonIdentId(verdi = prosessfullmektigIdent) else null,
+                        navn = prosessfullmektigNavn,
+                        adresse =
+                            if (!prosessfullmektigLand.isNullOrBlank()) {
+                                Adresse(
+                                    addresselinje1 = prosessfullmektigAdresselinje1,
+                                    addresselinje2 = prosessfullmektigAdresselinje2,
+                                    addresselinje3 = prosessfullmektigAdresselinje3,
+                                    postnummer = prosessfullmektigPostnummer,
+                                    poststed = prosessfullmektigPoststed,
+                                    land = prosessfullmektigLand,
+                                )
+                            } else {
+                                null
+                            },
+                    )
+                } else {
+                    null
+                }
+
             runBlocking {
                 klageKlient.oversendKlageAnke(
                     behandlingId = behandlingId,
