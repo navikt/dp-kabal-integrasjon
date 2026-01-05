@@ -176,7 +176,7 @@ fun httpClient(
                         .info { message }
                 }
             }
-        level = LogLevel.BODY
+        level = LogLevel.INFO
     }
 
     install(PrometheusMetricsPlugin) {
