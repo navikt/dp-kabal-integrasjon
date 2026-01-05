@@ -31,6 +31,7 @@ internal class KlageVedtakMottak(
                         "detaljer",
                     )
                     it.requireValue("kilde", KILDE)
+                    it.forbidValue("@event_name", EVENT_NAME)
                 }
             }
     }

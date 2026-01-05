@@ -75,7 +75,32 @@ class KlageVedtakMottakTest {
             """.trimIndent()
 
         testRapid.sendTestMessage(inputMessage)
+        testRapid.inspektør.size shouldBe 0
+    }
 
+    @Test
+    fun `Skal filtrere bort events med @event_name som vi setter selv`() {
+        @Language("JSON")
+        val inputMessage =
+            """
+            {
+              "@event_name": "${KlageVedtakMottak.EVENT_NAME}",
+              "eventId": "${UUID.randomUUID()}",
+              "kildeReferanse": "ref123",
+              "kilde": "DAGPENGER",
+              "kabalReferanse": "kabal456",
+              "type": "KLAGEBEHANDLING_AVSLUTTET",
+              "detaljer": {
+                "klagebehandlingAvsluttet": {
+                  "avsluttet": "${LocalDateTime.now()}",
+                  "utfall": "MEDHOLD",
+                  "journalpostReferanser": ["jp1"]
+                }
+              }
+            }
+            """.trimIndent()
+
+        testRapid.sendTestMessage(inputMessage)
         testRapid.inspektør.size shouldBe 0
     }
 }
