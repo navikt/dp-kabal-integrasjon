@@ -7,6 +7,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -122,6 +126,7 @@ data class PersonIdentId(
 ) {
     override fun toString(): String = "$type:${verdi.take(6)}"
 }
+
 data class Adresse(
     val addresselinje1: String?,
     val addresselinje2: String?,
@@ -142,6 +147,15 @@ fun httpClient(
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
+    }
+
+    install(Logging) {
+        logger = object : Logger {
+            override fun log(message: String) {
+                no.nav.dagpenger.klageinstans.logger.info { message }
+            }
+        }
+        level = LogLevel.BODY
     }
 
     install(PrometheusMetricsPlugin) {
