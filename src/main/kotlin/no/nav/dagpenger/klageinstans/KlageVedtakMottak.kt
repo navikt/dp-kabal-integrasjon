@@ -46,20 +46,22 @@ internal class KlageVedtakMottak(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val eventId = packet["eventId"].asText()
-        val behandlingId = packet["kildeReferanse"].asText()
-        val kilde = packet["kilde"].asText()
-        val kabalReferanse = packet["kabalReferanse"].asText()
-        val type = packet["type"].asText()
+        val klageInstansEventId = packet["eventId"].asText()
+        val klageId = packet["kildeReferanse"].asText()
+        val klageinstansVedtakId = packet["kabalReferanse"].asText()
+        val klageInstansVedtakType = packet["type"].asText()
 
         withLoggingContext(
-            "behandlingId" to behandlingId,
+            "klageId" to klageId,
+            "klageinstansVedtakId" to klageinstansVedtakId,
+            "klageInstansEventId" to klageInstansEventId,
+            "klageInstansVedtakType" to klageInstansVedtakType,
         ) {
-            logger.info { "Mottok klageAnke vedtak for behandlingId: $behandlingId" }
-            sikkerlogg.info { "Mottok klageAnke vedtak for behandlingId: $behandlingId med pakke: ${packet.toJson()}" }
+            logger.info { "Mottok klageAnke vedtak for behandlingId: $klageId" }
+            sikkerlogg.info { "Mottok klageAnke vedtak for behandlingId: $klageId med pakke: ${packet.toJson()}" }
             packet["@event_name"] = EVENT_NAME
             context.publish(
-                packet.toJson(),
+                message = packet.toJson(),
             )
         }
     }
