@@ -20,8 +20,6 @@ spec:
     requests:
       cpu: 200m
       memory: 256Mi
-  secureLogs:
-    enabled: true
   kafka:
     pool: "{{ kafka_pool }}"
   azure:
