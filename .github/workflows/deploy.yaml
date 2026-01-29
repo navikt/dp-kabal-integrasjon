@@ -3,6 +3,7 @@ name: Build and deploy
 
 #Kommenter inn
 on:
+  workflow_dispatch:
   push:
     branches-ignore:
       - 'dependabot/**'
