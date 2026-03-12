@@ -7,6 +7,10 @@ metadata:
     team: teamdagpenger
 spec:
   image: {{ image }}
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
   port: 8080
   prometheus:
     enabled: true
