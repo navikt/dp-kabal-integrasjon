@@ -46,10 +46,10 @@ internal class KlageVedtakMottak(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val klageInstansEventId = packet["eventId"].asText()
-        val klageId = packet["kildeReferanse"].asText()
-        val klageinstansVedtakId = packet["kabalReferanse"].asText()
-        val klageInstansVedtakType = packet["type"].asText()
+        val klageInstansEventId = packet["eventId"].stringValue()
+        val klageId = packet["kildeReferanse"].stringValue()
+        val klageinstansVedtakId = packet["kabalReferanse"].stringValue()
+        val klageInstansVedtakType = packet["type"].stringValue()
 
         withLoggingContext(
             "klageId" to klageId,

@@ -1,6 +1,5 @@
 package no.nav.dagpenger.klageinstans
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.River.PacketListener
@@ -12,6 +11,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.withLoggingContext
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
+import tools.jackson.databind.JsonNode
 
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -64,7 +64,7 @@ internal class KlageBehovløser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val behandlingId = packet["behandlingId"].asText()
+        val behandlingId = packet["behandlingId"].stringValue()
         if (behandlingId in setOf("019b2712-1bff-7474-b005-5be09fc47d7a")) {
             logger.info { "Skipper oversendelse av klagebehandling $behandlingId" }
             return
@@ -73,33 +73,34 @@ internal class KlageBehovløser(
             logger.info { "Mottatt behov om oversendelse av klage til klageinstans for behandling $behandlingId" }
             sikkerlogg.info { "Behandlingsdata for klagebehandling $behandlingId: ${packet.toJson()}" }
 
-            val ident = packet["ident"].asText()
-            val fagsakId = packet["fagsakId"].asText()
+            val ident = packet["ident"].stringValue()
+            val fagsakId = packet["fagsakId"].stringValue()
             val opprettet = packet["opprettet"].asLocalDateTime()
-            val behandlendeEnhet = packet["behandlendeEnhet"].asText()
-            val hjemler = packet["hjemler"].map { it.asText() }
+            val behandlendeEnhet = packet["behandlendeEnhet"].stringValue()
+            val hjemler: List<String> = packet["hjemler"].toList().map { it.stringValue() }
             val tilknyttedeJournalposter: List<Journalposter> =
-                packet["tilknyttedeJournalposter"].takeIf(JsonNode::isArray)?.map {
+                (packet["tilknyttedeJournalposter"].takeIf(JsonNode::isArray) as Iterable<JsonNode>?)?.map {
                     it.takeIf(JsonNode::isObject).let { jp ->
                         Journalposter(
-                            jp?.get("type")!!.asText(),
-                            jp.get("journalpostId")!!.asText(),
+                            jp?.get("type")!!.stringValue(),
+                            jp.get("journalpostId")!!.stringValue(),
                         )
                     }
                 } ?: emptyList()
-            val kommentar = packet["kommentar"].takeIf(JsonNode::isTextual)?.asText()
-            val prosessfullmektigNavn = packet["prosessfullmektigNavn"].takeIf(JsonNode::isTextual)?.asText()
-            val prosessfullmektigIdent = packet["prosessfullmektigIdent"].takeIf(JsonNode::isTextual)?.asText()
+            val kommentar = packet["kommentar"].takeIf(JsonNode::isString)?.stringValue()
+            val prosessfullmektigNavn = packet["prosessfullmektigNavn"].takeIf(JsonNode::isString)?.stringValue()
+            val prosessfullmektigIdent = packet["prosessfullmektigIdent"].takeIf(JsonNode::isString)?.stringValue()
             val prosessfullmektigAdresselinje1 =
-                packet["prosessfullmektigAdresselinje1"].takeIf(JsonNode::isTextual)?.asText()
+                packet["prosessfullmektigAdresselinje1"].takeIf(JsonNode::isString)?.stringValue()
             val prosessfullmektigAdresselinje2 =
-                packet["prosessfullmektigAdresselinje2"].takeIf(JsonNode::isTextual)?.asText()
+                packet["prosessfullmektigAdresselinje2"].takeIf(JsonNode::isString)?.stringValue()
             val prosessfullmektigAdresselinje3 =
-                packet["prosessfullmektigAdresselinje3"].takeIf(JsonNode::isTextual)?.asText()
+                packet["prosessfullmektigAdresselinje3"].takeIf(JsonNode::isString)?.stringValue()
             val prosessfullmektigPostnummer =
-                packet["prosessfullmektigPostnummer"].takeIf(JsonNode::isTextual)?.asText()
-            val prosessfullmektigPoststed = packet["prosessfullmektigPoststed"].takeIf(JsonNode::isTextual)?.asText()
-            val prosessfullmektigLand = packet["prosessfullmektigLand"].takeIf(JsonNode::isTextual)?.asText()
+                packet["prosessfullmektigPostnummer"].takeIf(JsonNode::isString)?.stringValue()
+            val prosessfullmektigPoststed =
+                packet["prosessfullmektigPoststed"].takeIf(JsonNode::isString)?.stringValue()
+            val prosessfullmektigLand = packet["prosessfullmektigLand"].takeIf(JsonNode::isString)?.stringValue()
 
             val prosessFullmektig =
                 if (!prosessfullmektigNavn.isNullOrBlank() || !prosessfullmektigIdent.isNullOrBlank()) {
