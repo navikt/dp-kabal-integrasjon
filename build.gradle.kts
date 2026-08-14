@@ -12,7 +12,7 @@ dependencies {
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
     implementation(libs.bundles.ktor.client)
-    implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+    implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
     implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
     implementation("no.nav.dagpenger:ktor-client-metrics:$dpBibliotekerVersion")
     implementation("no.nav.dagpenger:oauth2-klient:$dpBibliotekerVersion")
