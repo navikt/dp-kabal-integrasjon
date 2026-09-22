@@ -5,6 +5,7 @@ metadata:
   namespace: teamdagpenger
   labels:
     team: teamdagpenger
+    subteam: stsb
 spec:
   image: {{ image }}
   liveness:
