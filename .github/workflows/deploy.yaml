@@ -44,8 +44,28 @@ jobs:
           tag: ${{ github.sha }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          salsa: false
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
+      digest: ${{ steps.docker-build-push.outputs.digest }}
+
+  salsa:
+    name: Generate SBOM, attest and sign image
+    needs: [ build ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+    steps:
+      - name: NAIS login
+        uses: nais/login@v0
+        id: login
+        with:
+          team: teamdagpenger
+      - name: Attest and sign image
+        uses: nais/attest-sign@v2.0.19
+        with:
+          image_ref: ${{ needs.build.outputs.image }}
 
   deploy-dev:
     permissions:
