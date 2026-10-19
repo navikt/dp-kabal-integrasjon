@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    val dpBibliotekerVersion = "2026.10.15-18.29.4e256bf96fe2"
+    val dpBibliotekerVersion = "2026.10.19-06.23.ec3aaa4756e0"
     implementation(libs.rapids.and.rivers)
     implementation("io.prometheus:prometheus-metrics-core:1.10.0")
 
