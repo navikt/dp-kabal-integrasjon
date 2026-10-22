@@ -6,6 +6,8 @@ metadata:
   labels:
     team: teamdagpenger
     subteam: stsb
+    okonomisystem: "false"
+    fagsystem: DAGPENGER
 spec:
   image: {{ image }}
   liveness:
