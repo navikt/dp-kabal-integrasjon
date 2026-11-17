@@ -35,7 +35,7 @@ jobs:
       - run: ./gradlew --configuration-cache build
 
       - name: docker-build-push
-        uses: nais/docker-build-push@v0
+        uses: nais/docker-build-push@v1
         if: github.ref == 'refs/heads/main'
         id: docker-build-push
         with:
